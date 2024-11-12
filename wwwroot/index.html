@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Dokumentáció</title>
+    <style>
+        /* Alap stílusok a laphoz */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .container {
+            margin: 20px;
+        }
+
+        /* Táblázat stílusok */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        /* Gomb stílusok */
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        /* Hibaüzenet stílusok */
+        .error {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>API Dokumentáció</h1>
+    <p>Szép és könnyen használható API felület</p>
+</header>
+
+<div class="container">
+    <h2>Categories API</h2>
+    <button class="btn" onclick="getCategories()">Lekérdezés</button>
+    
+    <div id="error-message" class="error" style="display:none;"></div>
+    
+    <table id="categories-table" style="display:none;">
+        <thead>
+            <tr>
+                <th>Category ID</th>
+                <th>Name</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- A kategóriák itt fognak megjelenni -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // A Categories lekérdezéséhez szükséges funkció
+    function getCategories() {
+        // Kiürítjük a hibaüzenetet és a táblázatot
+        document.getElementById('error-message').style.display = 'none';
+        document.getElementById('categories-table').style.display = 'none';
+        const tableBody = document.querySelector('#categories-table tbody');
+        tableBody.innerHTML = '';
+
+        fetch('https://localhost:7041/api/categories')  // API endpoint, ami a kategóriákat adja vissza
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Hiba történt a kategóriák lekérdezésekor.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const tableBody = document.querySelector('#categories-table tbody');
+                data.forEach(category => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${category.categoryId}</td>
+                        <td>${category.name}</td>
+                        <td>${category.description || 'Nincs leírás'}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Megjelenítjük a táblázatot
+                document.getElementById('categories-table').style.display = 'table';
+            })
+            .catch(error => {
+                // Hibaüzenet kezelése
+                const errorMessage = document.getElementById('error-message');
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = error.message;
+            });
+    }
+</script>
+
+</body>
+</html>
