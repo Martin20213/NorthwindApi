@@ -286,20 +286,15 @@ function updateCategory() {
             });
         }
 
-        // Ha a válasz üres, ne próbáljuk JSON-ként értelmezni
-        if (response.status === 204) {
-            console.log("A módosítás sikeres, de nincs válasz.");
-            return;
-        }
-
-        return response.json();
+        // Ha a válasz üres, a módosítás sikeres, de nincs válasz, akkor is folytatjuk
+        console.log("A módosítás sikeres, de nincs válasz.");
+        
+        return response.status === 204 ? null : response.json();  // Ha nincs válasz, akkor null-t adunk vissza
     })
-    .then(data => {
-        if (data) {
-            console.log('Sikeres válasz:', data);
-            getCategories();
-            document.getElementById('edit-form').style.display = 'none';
-        }
+    .then(() => {
+        // Frissítjük a kategóriákat, függetlenül a választól
+        getCategories();
+        document.getElementById('edit-form').style.display = 'none'; // Elrejtjük a módosító formot
     })
     .catch(error => {
         const errorMessage = document.getElementById('error-message');
@@ -307,6 +302,8 @@ function updateCategory() {
         errorMessage.textContent = error.message;
     });
 }
+
+
 
 
 </script>
