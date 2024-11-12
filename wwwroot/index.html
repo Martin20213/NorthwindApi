@@ -251,37 +251,63 @@
     }
 
     // Kategória frissítése (módosítása)
-    function updateCategory() {
-        const categoryId = document.getElementById('edit-form').dataset.categoryId;
-        const name = document.getElementById('edit-category-name').value;
-        const description = document.getElementById('edit-category-description').value;
+// Módosítja a kategóriát
+function updateCategory() {
+    const categoryId = document.getElementById('edit-form').dataset.categoryId;
+    const name = document.getElementById('edit-category-name').value;
+    const description = document.getElementById('edit-category-description').value;
 
-        if (!name || !description) {
-            alert("A kategória neve és leírása nem lehet üres!");
+    if (!name || !description) {
+        alert("A kategória neve és leírása nem lehet üres!");
+        return;
+    }
+
+    const categoryData = {
+        categoryid: parseInt(categoryId),  // categoryid szükséges
+        categoryname: name,
+        description: description
+    };
+
+    console.log('Küldött adat:', categoryData);
+
+    fetch(`https://localhost:7041/api/categories/${categoryId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(categoryData),
+    })
+    .then(response => {
+        if (!response.ok) {
+            // Ha a válasz nem ok, ellenőrizzük, hogy van-e szöveges válasz
+            return response.text().then(errorText => {
+                console.error('Szerver válasz:', errorText);
+                throw new Error(`Hiba történt a kategória módosításakor: ${errorText}`);
+            });
+        }
+
+        // Ha a válasz üres, ne próbáljuk JSON-ként értelmezni
+        if (response.status === 204) {
+            console.log("A módosítás sikeres, de nincs válasz.");
             return;
         }
 
-        fetch(`https://localhost:7041/api/categories/${categoryId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ categoryname: name, description: description }),
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Hiba történt a kategória módosításakor.');
-            }
-            return response.json();
-        })
-        .then(() => {
+        return response.json();
+    })
+    .then(data => {
+        if (data) {
+            console.log('Sikeres válasz:', data);
             getCategories();
             document.getElementById('edit-form').style.display = 'none';
-        })
-        .catch(error => {
-            const errorMessage = document.getElementById('error-message');
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = error.message;
-        });
-    }
+        }
+    })
+    .catch(error => {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.style.display = 'block';
+        errorMessage.textContent = error.message;
+    });
+}
+
 
 </script>
 
