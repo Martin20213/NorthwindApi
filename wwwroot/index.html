@@ -120,8 +120,8 @@
                 data.forEach(category => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${category.categoryId}</td>
-                        <td>${category.name}</td>
+                        <td>${category.categoryid}</td>
+                        <td>${category.categoryname}</td>
                         <td>${category.description || 'Nincs leírás'}</td>
                     `;
                     tableBody.appendChild(row);
