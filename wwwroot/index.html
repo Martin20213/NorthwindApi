@@ -154,7 +154,6 @@
 
         fetch('https://localhost:7041/api/categories')  // API endpoint, ami a kategóriákat adja vissza
             .then(response => {
-                console.log(response);  // Debugging: naplózzuk a válasz részleteit
                 if (!response.ok) {
                     throw new Error('Hiba történt a kategóriák lekérdezésekor.');
                 }
@@ -181,7 +180,6 @@
                 document.getElementById('categories-table').style.display = 'table';
             })
             .catch(error => {
-                // Hibaüzenet kezelése
                 const errorMessage = document.getElementById('error-message');
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = error.message;
@@ -197,11 +195,11 @@
             if (!response.ok) {
                 throw new Error('Hiba történt a kategória törlésénél.');
             }
-            return response.json();
+            // Nem várunk JSON választ, csak státuszt
+            return response.text(); // Response text (nem JSON)
         })
         .then(() => {
-            // Frissítjük a listát
-            getCategories();
+            getCategories(); // újra lekérdezzük a kategóriákat
         })
         .catch(error => {
             const errorMessage = document.getElementById('error-message');
@@ -226,14 +224,12 @@
             body: JSON.stringify({ categoryname: name, description: description }),
         })
         .then(response => {
-            console.log(response);  // Debugging: naplózzuk a válasz részleteit
             if (!response.ok) {
                 throw new Error('Hiba történt a kategória hozzáadásakor.');
             }
             return response.json();
         })
         .then(() => {
-            // Frissítjük a listát
             getCategories();
         })
         .catch(error => {
@@ -248,14 +244,15 @@
         const category = categories.find(cat => cat.categoryid === categoryId);
         if (category) {
             document.getElementById('edit-category-name').value = category.categoryname;
-            document.getElementById('edit-category-description').value = category.description;
+            document.getElementById('edit-category-description').value = category.description || '';
             document.getElementById('edit-form').style.display = 'block';
-            document.getElementById('edit-form').setAttribute('data-id', categoryId);
+            document.getElementById('edit-form').dataset.categoryId = categoryId;
         }
     }
 
+    // Kategória frissítése (módosítása)
     function updateCategory() {
-        const categoryId = document.getElementById('edit-form').getAttribute('data-id');
+        const categoryId = document.getElementById('edit-form').dataset.categoryId;
         const name = document.getElementById('edit-category-name').value;
         const description = document.getElementById('edit-category-description').value;
 
@@ -270,14 +267,12 @@
             body: JSON.stringify({ categoryname: name, description: description }),
         })
         .then(response => {
-            console.log(response);  // Debugging: naplózzuk a válasz részleteit
             if (!response.ok) {
                 throw new Error('Hiba történt a kategória módosításakor.');
             }
             return response.json();
         })
         .then(() => {
-            // Frissítjük a listát
             getCategories();
             document.getElementById('edit-form').style.display = 'none';
         })
@@ -287,6 +282,7 @@
             errorMessage.textContent = error.message;
         });
     }
+
 </script>
 
 </body>
