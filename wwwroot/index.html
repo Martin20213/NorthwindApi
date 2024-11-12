@@ -70,6 +70,31 @@
             font-weight: bold;
             text-align: center;
         }
+
+        /* Form stílusok */
+        .form-container {
+            margin-top: 20px;
+        }
+
+        .input-field {
+            margin: 10px 0;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        .input-button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .input-button:hover {
+            background-color: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -91,15 +116,34 @@
                 <th>Category ID</th>
                 <th>Name</th>
                 <th>Description</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <!-- A kategóriák itt fognak megjelenni -->
         </tbody>
     </table>
+
+    <!-- Kategória hozzáadása -->
+    <div class="form-container">
+        <h3>Új kategória hozzáadása</h3>
+        <input type="text" id="new-category-name" class="input-field" placeholder="Kategória neve">
+        <input type="text" id="new-category-description" class="input-field" placeholder="Kategória leírása">
+        <button class="input-button" onclick="addCategory()">Hozzáadás</button>
+    </div>
+
+    <!-- Kategória módosítása -->
+    <div class="form-container" id="edit-form" style="display:none;">
+        <h3>Kategória módosítása</h3>
+        <input type="text" id="edit-category-name" class="input-field" placeholder="Új kategória neve">
+        <input type="text" id="edit-category-description" class="input-field" placeholder="Új kategória leírása">
+        <button class="input-button" onclick="updateCategory()">Módosítás</button>
+    </div>
 </div>
 
 <script>
+    let categories = [];
+
     // A Categories lekérdezéséhez szükséges funkció
     function getCategories() {
         // Kiürítjük a hibaüzenetet és a táblázatot
@@ -110,12 +154,14 @@
 
         fetch('https://localhost:7041/api/categories')  // API endpoint, ami a kategóriákat adja vissza
             .then(response => {
+                console.log(response);  // Debugging: naplózzuk a válasz részleteit
                 if (!response.ok) {
                     throw new Error('Hiba történt a kategóriák lekérdezésekor.');
                 }
                 return response.json();
             })
             .then(data => {
+                categories = data;
                 const tableBody = document.querySelector('#categories-table tbody');
                 data.forEach(category => {
                     const row = document.createElement('tr');
@@ -123,6 +169,10 @@
                         <td>${category.categoryid}</td>
                         <td>${category.categoryname}</td>
                         <td>${category.description || 'Nincs leírás'}</td>
+                        <td>
+                            <button onclick="editCategory(${category.categoryid})">Módosítás</button>
+                            <button onclick="deleteCategory(${category.categoryid})">Törlés</button>
+                        </td>
                     `;
                     tableBody.appendChild(row);
                 });
@@ -136,6 +186,106 @@
                 errorMessage.style.display = 'block';
                 errorMessage.textContent = error.message;
             });
+    }
+
+    // Kategória törlés
+    function deleteCategory(categoryId) {
+        fetch(`https://localhost:7041/api/categories/${categoryId}`, {
+            method: 'DELETE',
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Hiba történt a kategória törlésénél.');
+            }
+            return response.json();
+        })
+        .then(() => {
+            // Frissítjük a listát
+            getCategories();
+        })
+        .catch(error => {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = error.message;
+        });
+    }
+
+    // Kategória hozzáadása
+    function addCategory() {
+        const name = document.getElementById('new-category-name').value;
+        const description = document.getElementById('new-category-description').value;
+
+        if (!name || !description) {
+            alert("A kategória neve és leírása nem lehet üres!");
+            return;
+        }
+
+        fetch('https://localhost:7041/api/categories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categoryname: name, description: description }),
+        })
+        .then(response => {
+            console.log(response);  // Debugging: naplózzuk a válasz részleteit
+            if (!response.ok) {
+                throw new Error('Hiba történt a kategória hozzáadásakor.');
+            }
+            return response.json();
+        })
+        .then(() => {
+            // Frissítjük a listát
+            getCategories();
+        })
+        .catch(error => {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = error.message;
+        });
+    }
+
+    // Kategória módosítása
+    function editCategory(categoryId) {
+        const category = categories.find(cat => cat.categoryid === categoryId);
+        if (category) {
+            document.getElementById('edit-category-name').value = category.categoryname;
+            document.getElementById('edit-category-description').value = category.description;
+            document.getElementById('edit-form').style.display = 'block';
+            document.getElementById('edit-form').setAttribute('data-id', categoryId);
+        }
+    }
+
+    function updateCategory() {
+        const categoryId = document.getElementById('edit-form').getAttribute('data-id');
+        const name = document.getElementById('edit-category-name').value;
+        const description = document.getElementById('edit-category-description').value;
+
+        if (!name || !description) {
+            alert("A kategória neve és leírása nem lehet üres!");
+            return;
+        }
+
+        fetch(`https://localhost:7041/api/categories/${categoryId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ categoryname: name, description: description }),
+        })
+        .then(response => {
+            console.log(response);  // Debugging: naplózzuk a válasz részleteit
+            if (!response.ok) {
+                throw new Error('Hiba történt a kategória módosításakor.');
+            }
+            return response.json();
+        })
+        .then(() => {
+            // Frissítjük a listát
+            getCategories();
+            document.getElementById('edit-form').style.display = 'none';
+        })
+        .catch(error => {
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.style.display = 'block';
+            errorMessage.textContent = error.message;
+        });
     }
 </script>
 
